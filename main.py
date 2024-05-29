@@ -14,15 +14,25 @@ from operating_system.kernel import Kernel
 class HardwareManagementCLIApp(Cmd):
 
     ############### HARDWARE CONFIGURATION AND BEHAVIOR ########################
-
-    _memory_size=15
+    _memory_size=30
     _clock_speed=1
     _io_device_timings=[1, 2]
-    _showing_ticks = True
-    _start_in_turbo_mode=True
-
     ############### END HARDWARE CONFIGURATION AND BEHAVIOR ########################
 
+    ############### OS CONFIGURATION AND BEHAVIOR ########################
+    _scheduler_algorithm='FCFS'
+    _quantum=0
+    ############### END OS CONFIGURATION AND BEHAVIOR ########################
+
+    ############### MANAGER CONFIGURATION AND BEHAVIOR ########################
+    _showing_ticks = False
+    _start_in_turbo_mode=True
+    # Automatically run tests at startup
+    _automatically_run__tests=[1]
+    # If none, print to console, else, print the
+    # output to a file
+    _history_output_file='out.txt'
+    ############### END MANAGER CONFIGURATION AND BEHAVIOR ########################
 
     ############### CLI APP CONFIGURATION ########################
 
@@ -48,7 +58,7 @@ class HardwareManagementCLIApp(Cmd):
         )
 
         # Initialize the Operating System
-        self.os = Kernel()
+        self.os = Kernel(scheduling_strategy=self._scheduler_algorithm, quantum=self._quantum)
 
         # The history helps us in visualizing how the
         # execution happened, is not part of the hardware nor
@@ -62,8 +72,21 @@ class HardwareManagementCLIApp(Cmd):
         # Adjust speed if starting in turbo mode
         if (self._start_in_turbo_mode):
             HARDWARE.clock.overclock()
+        for test in self._automatically_run__tests:
+            self.__class__.__dict__['test_' + str(test)].__call__(self)
 
-    def do_quit(self, line):
+    def test_1(self):
+        self.do_load('cpu_long')
+        self.do_tick(4)
+        self.do_load('cpu_short')
+        self.do_tick(1)
+        self.do_load('cpu_medium')
+        self.do_tick(4)
+        self.do_load('cpu_short')
+        self.do_tick(25)
+        self.do_history()
+
+    def do_quit(self, line = None):
         """ Exit the application. """
         return True
 
@@ -71,30 +94,30 @@ class HardwareManagementCLIApp(Cmd):
 
     ############### MANIPULATE HARDWARE ########################
 
-    def do_on(self, line):
+    def do_on(self, line = None):
         """ Turn ON the computer. """
         Printer.show(" ---- TURNING COMPUTER ON ---- ")
         HARDWARE.turn_on()
 
-    def do_off(self, line):
+    def do_off(self, line = None):
         """ Turn OFF the computer. """
         HARDWARE.turn_off()
         Printer.show(" ---- TURNING COMPUTER OFF ---- ")
 
-    def do_turbo_on(self, line):
+    def do_turbo_on(self, line = None):
         """ Turn ON turbo mode. """
         # Turbo sets the speed of the clock to immediate mode,
         # this is usefull when running ticks manually for debugging
         HARDWARE.clock.overclock()
         Printer.show(" ---- STARTING TURBO MODE ---- ")
 
-    def do_turbo_off(self, line):
+    def do_turbo_off(self, line = None):
         """ Turn OFF turbo mode. """
         # Set the speed back to original value
         HARDWARE.clock.reset()
         Printer.show(" ---- ENDING TURBO MODE ---- ")
 
-    def do_status(self, line):
+    def do_status(self, line = None):
         """ Show the hardware status. """
         data = Printer.tabulated([[HARDWARE, self.os]],
             headers=["Hardware", "Operating System"],
@@ -102,32 +125,40 @@ class HardwareManagementCLIApp(Cmd):
         )
         Printer.show(data)
 
-    def do_history(self, line):
+    def do_history(self, line = None):
         """ Show the hardware status. """
-        Printer.show(self.history)
+        if self._history_output_file is None:
+            Printer.show(self.history)
+        else:
+            f = open(self._history_output_file, 'w')
+            f.write(self.history.to_string())
+            f.close()
 
     ############### END MANIPULATE HARDWARE ########################
 
 
     ############### SIMULATE TICKING ########################
 
-    def do_tick(self, line):
+    def do_tick(self, line = 1):
         """
         Run a clock"s tick, even if computer is off.
         Useful for debugging only.
         """
         ticks = 1
-        # If the user passes as integer, perform that many ticks
-        if (line != "" and line.isdigit()):
+
+        if (type(line) == str and line != "" and line.isdigit()):
             ticks = int(line)
+        elif (type(line) == int):
+            ticks = line
+
         for _ in range(ticks):
             HARDWARE.clock.tick()
 
-    def do_show_ticks(self, line):
+    def do_show_ticks(self, line = None):
         """ Show the hardware status. """
         self._showing_ticks = True
 
-    def do_hide_ticks(self, line):
+    def do_hide_ticks(self, line = None):
         """ Show the hardware status. """
         self._showing_ticks = False
 
@@ -146,7 +177,7 @@ class HardwareManagementCLIApp(Cmd):
 
     ############### LOAD PROGRAMS ########################
 
-    def do_load(self, line):
+    def do_load(self, line = None):
         """ Load a program from the ones in the programs folder. """
         try:
             # Get the filename
@@ -169,7 +200,7 @@ class HardwareManagementCLIApp(Cmd):
             Printer.error("ERROR: " + str(e))
             Printer.error(traceback.format_exc())
 
-    def do_kill(self, line):
+    def do_kill(self, line = None):
         """ Kill the process with given PID. """
         try:
             pid = int(line.strip())

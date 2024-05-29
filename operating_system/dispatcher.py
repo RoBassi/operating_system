@@ -7,8 +7,6 @@ class Dispatcher:
     The dispatcher is in charge of loading and saving the state
     of the CPU into a particular PCB.
     """
-    """El despachador se encarga de cargar y guardar el estado de la CPU en una PCB particular."""
-
     def __init__(self, kernel):
         self.__kernel = kernel
 
@@ -22,15 +20,6 @@ class Dispatcher:
         # This implies copying the information stored in the PCB
         # to the corresponding registries in the CPU, so next tick will
         # run the process the PCB represents.
-
-        """Cargue el estado de una PCB en la CPU. El siguiente tick comenzará a ejecutar el programa del proceso cargado."""
-        # TODO: (2)
-        # Necesitamos cargar el estado de la PCB dada en la CPU.
-        # Esto implica copiar la información almacenada en la PCB
-        # a los registros correspondientes en la CPU, por lo que el siguiente tick será
-        # ejecuta el proceso que representa la PCB.
-        # ---------------------------------------------------------------------------------
-        # Access relevant information from the PCB
         HARDWARE.cpu.pc = pcb.pc
 
     def save(self, pcb):

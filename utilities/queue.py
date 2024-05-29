@@ -20,13 +20,16 @@ class Queue:
         """
         return None if self.is_empty else self.__data[0]
 
-    def enqueue(self, datum):
+    def enqueue(self, item):
         """ Add an element to the back of the queue. """
-        self.__data.append(datum)
+        self.__data.append(item)
 
     def dequeue(self):
-        """ Remove the front elemen from queue and return it. """
+        """ Remove the front element from queue and return it. """
         return self.__data.pop(0)
+
+    def __len__(self):
+        return len(self.__data)
 
     def __repr__(self):
         return " <- ".join([str(e) for e in self.__data])

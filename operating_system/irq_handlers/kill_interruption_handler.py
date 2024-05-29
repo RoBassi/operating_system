@@ -18,7 +18,4 @@ class KillInterruptionHandler(AbstractInterruptionHandler):
         # As the currently running process is now in terminated state,
         # the last step is to tell the scheduler to run the next process
         # in the ready queue, if any.
-        runningProcess = self.kernel.scheduler.currently_running_pid
-        next_process = self.kernel.scheduler.next_process
-        if next_process is not None and runningProcess is None:
-                self.kernel.scheduler.move_to_running(next_process)
+        HARDWARE.interrupt_vector.handle(IRQ.DISPATCH(self.kernel.scheduler.current_algorithm.is_preemptive))

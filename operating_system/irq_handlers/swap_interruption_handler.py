@@ -14,18 +14,11 @@ class SwapInterruptionHandler(AbstractInterruptionHandler):
         # We are handling preemption here. So we need to swap the
         # currently executing in the CPU, by the one next in the queue.
         # First, lets get the process running
-        # Me guardo en "pidToMove" el proceso que se esta ejecutando actualmente
-        pidToMove = self.kernel.scheduler.currently_running_pid
-
+        pid = self.kernel.scheduler.currently_running_pid
         # Now, let's move this process to ready state, as it can actually
         # still run, it's the OS who is telling it not to continue.
-        self.kernel.scheduler.move_to_ready(pidToMove)
-        
+        self.kernel.scheduler.move_to_ready(pid)
         # Once in ready, we have to load the next process in the ready queue.
-        # Not that, if there is only one
-        # process, it will be the same
+        # Not that, if there is only one process, it will be the same
         # process that we load.
-        runningProcess = self.kernel.scheduler.currently_running_pid
-        next_process = self.kernel.scheduler.next_process
-        if next_process is not None and runningProcess is None:
-                self.kernel.scheduler.move_to_running(next_process)
+        HARDWARE.interrupt_vector.handle(IRQ.DISPATCH(self.kernel.scheduler.current_algorithm.is_preemptive))

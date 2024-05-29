@@ -25,11 +25,6 @@ class IOController:
         sending a request to the device.
         If no request has been sent, returns None.
         """
-        """
-        Devuelve el process id del proceso que actualmente envía una 
-        solicitud al dispositivo. Si no se ha enviado ninguna solicitud, 
-        devuelve Ninguno.
-        """
         return self.__currently_running_pid
 
     def request(self, pid):

@@ -1,4 +1,3 @@
 IO
 IO
-CPU
 EXIT

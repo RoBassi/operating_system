@@ -12,6 +12,11 @@ class ProcessTable():
         self.__table = {}
         self.__last_used_pid = 0
 
+    @property
+    def last_used_pid(self):
+        """ Return the last used pid. Should be uses only for printing history. """
+        return self.__last_used_pid
+
     def get_next_pid(self):
         """
         Increment the last used PID and return it.
@@ -47,11 +52,6 @@ class ProcessTable():
     def all_pcbs(self):
         """ Return all the PCBs. """
         return self.__table.items()
-    
-    @property
-    def last_used_pid(self):
-        """ Return the last used pid. Should be uses only for printing history. """
-        return self.__last_used_pid
 
     def __repr__(self):
         # We join the processes in a list of elements each, so

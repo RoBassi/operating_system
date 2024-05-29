@@ -4,6 +4,7 @@ class AbstractInterruptionHandler():
         A handler has access to the kernel, and knows how
         to "execute" on an IRQ.
     """
+
     def __init__(self, kernel):
         self._kernel = kernel
 

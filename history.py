@@ -31,11 +31,11 @@ class History:
             else:
                 self.__process_status_over_time[-1].append('--')
 
-    def __repr__(self):
+    def to_string(self, columns = None):
         process_per_tick = []
         status_per_tick = []
         elements_added = 0
-        columns = 8
+        columns = self.__ticks_registered if columns is None else columns
 
         for i in range(0, self.__ticks_registered):
             if (elements_added % columns == 0):
@@ -95,3 +95,6 @@ class History:
         ) + "\n\n" + Printer.tabulated([[process_status]],
             headers=["Process status over time"]
         )
+
+    def __repr__(self):
+        return self.to_string(8)

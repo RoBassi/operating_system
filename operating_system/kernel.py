@@ -19,7 +19,7 @@ from operating_system.irq_handlers.dispatch_interruption_handler import Dispatch
 class Kernel:
     """ Models the kernel of the OS. """
 
-    def __init__(self, quantum = 0):
+    def __init__(self, scheduling_strategy = 'FCFS', quantum = 0):
         # The process table holds all the PCB's, it contains information
         # of all the processes currently alive in the system. It also holds
         # other additional behavior, such as answering which is the next PID.
@@ -33,9 +33,6 @@ class Kernel:
         # The Dispatcher is the part of the OS in charge of switching the
         # context of the CPU from one process to the next. It does not
         # control which process to load, but jut loads and unloads a process.
-        # El Dispatcher es la parte del sistema operativo encargada de cambiar el
-        # contexto de la CPU de un proceso al siguiente. No
-        # controla qué proceso cargar, solo carga y descarga un proceso.
         self.__dispatcher = Dispatcher(self)
         # The Scheduler, as in, the Short-Term Scheduler, is going to be in
         # charge of assigning CPU usage to a particular process in time.
@@ -43,7 +40,7 @@ class Kernel:
         # executed, which processes are waiting for execution, which are waiting
         # for IO to finish, and so on. It's in charge of performing the
         # context_switch.
-        self.__scheduler = Scheduler(self)
+        self.__scheduler = Scheduler(self, scheduling_strategy, quantum)
         # The IO controllers are the ones that handle the request to each
         # IO device. There is one for each device. The IO controllers vector
         # is the one in charge of retrieving the right controller for a given
@@ -51,17 +48,7 @@ class Kernel:
         # convenient for managing and printing.
         self.__io_controllers_vector = IOControllersVector()
 
-        # The OS should also handle the swap process, if configured with a
-        # quantum value. This implies removing a process from the running state
-        # in favor of another process, in what is known as preemptive
-        # multitasking. The quantum determines the time-slice, roughly.
-        # Other mechanisms, such as, counting from the moment a process was
-        # introduced are also interesting, and we may implement them in the
-        # future, but this is good for now.
-        self.__quantum = quantum
-        if (self.__quantum > 0):
-            # We subscribe to the clock, so every few ticks, we handle #SWAP
-            HARDWARE.clock.add_subscriber(self)
+
 
         # The OS should register a handler for each type of interruption
         # the hardware defines. How to handle the interruptions is up to the
@@ -76,6 +63,8 @@ class Kernel:
         HARDWARE.interrupt_vector.register(IO_OUT_IRQ, IoOutInterruptionHandler(self))
         HARDWARE.interrupt_vector.register(SWAP_IRQ, SwapInterruptionHandler(self))
         HARDWARE.interrupt_vector.register(DISPATCH_IRQ, DispatchInterruptionHandler(self))
+
+
     @property
     def process_table(self):
         """ Returns the process table of the OS. """
@@ -100,13 +89,6 @@ class Kernel:
     def io_controllers_vector(self):
         """ Returns the IO controllers vector. """
         return self.__io_controllers_vector
-
-
-    ############### PREEMPTION ########################
-    def tick(self, tick_number):
-        if tick_number > 0 and tick_number % self.__quantum == 0:
-            HARDWARE.interrupt_vector.handle(IRQ.SWAP())
-    ############### END PREEMPTION ########################
 
     ############### SYSTEM CALLS ########################
 
@@ -151,7 +133,8 @@ class Kernel:
     def __repr__(self):
         os_config = Printer.tabulated([[
             Printer.tabulated([
-                ["Quantum", self.__quantum]
+                ["Sch. Algorithm", self.__scheduler.current_algorithm_name],
+                ["Quantum", self.__scheduler.current_algorithm.quantum]
             ])
         ]], headers=["Configuration"])
 

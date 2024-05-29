@@ -21,6 +21,4 @@ class NewInterruptionHandler(AbstractInterruptionHandler):
         # If there is no process running, most likely there is no
         # other process to execute, so move the next process to the
         # running state
-        HARDWARE.interrupt_vector.handle(IRQ.DISPATCH(preemptive=False))
-        # if (self.kernel.scheduler.currently_running_pid == None):
-        #    self.kernel.scheduler.move_to_running(pid)
+        HARDWARE.interrupt_vector.handle(IRQ.DISPATCH(self.kernel.scheduler.current_algorithm.is_preemptive))
